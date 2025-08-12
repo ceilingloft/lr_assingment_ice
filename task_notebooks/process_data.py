@@ -21,13 +21,15 @@ ARRESTS_KEY_COLS = [
     'Apprehension Site Landmark',
     'Unique Identifier']
 
+DATE_COLS = ['Apprehension Date', 'Departed Date']
+
 
 def read_arrests_data(
     path: Path, 
     usecols: List[str] = ARRESTS_KEY_COLS,
     header_row: int = 6):
     """
-    Read in arrests csv file into a dataframe. Cleans column names and string columns.
+    Read in arrests file into a dataframe. Cleans column names and string columns.
     inputs:
         path: path to the arrests file - can take .csv or .xlsx file of the data (see notes in README)
         usecols: columns to use (see 0-data_exploration.ipynb for reasoning on ARRESTS_KEY_COLS)
@@ -35,13 +37,16 @@ def read_arrests_data(
     returns:
         pandas DataFrame of the arrests data
     """
-    arrests_df = pd.read_excel(path, usecols=usecols, header=header_row)
+    if path.suffix == '.csv':
+        arrests_df = pd.read_csv(path, usecols=usecols, parse_dates=DATE_COLS)
+    elif path.suffix == '.xlsx':
+        arrests_df = pd.read_excel(path, usecols=usecols, header=header_row)
 
     arrests_df.columns = [x.strip().lower().replace(' ','_') for x in arrests_df.columns]
     for c in arrests_df.columns:
         if arrests_df[c].dtype == 'object' and c !='unique_identifier':
             arrests_df[c] = arrests_df[c].str.strip().str.upper()
-    return arrests_df
+    return arrests_df.drop_duplicates()
 
 
 
